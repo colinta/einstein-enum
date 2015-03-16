@@ -1,9 +1,10 @@
-require "einstein_enum"
+require "einstein-enum"
 
 
 ROOT = "https://api.api.com/api/v1"
 
 
+# defining an enum
 class Api < Enum
   value :Status
   value :User, Fixnum
@@ -50,19 +51,26 @@ class AnotherApi < Api
 end
 
 
-status = Api.Status
-user_type = Api.User(Fixnum)
-user_id = Api.User(2)
-user_name = Api.User('colinta')
-posts = Api.Posts
-post_detail = AnotherApi.PostDetail(2)
+# edge cases
+class EdgeCases < Enum
+  value :lower_case
+end
 
 
 RSpec.describe EinsteinEnum do
 
+  before do
+    @status = Api.Status
+    @user_type = Api.User(Fixnum)
+    @user_id = Api.User(2)
+    @user_name = Api.User('colinta')
+    @posts = Api.Posts
+    @post_detail = AnotherApi.PostDetail(2)
+  end
+
   describe "matches" do
     it "should match Api.Status" do
-      expect(case status
+      expect(case @status
       when Api.Status
         true
       when Api.User(Fixnum)
@@ -73,7 +81,7 @@ RSpec.describe EinsteinEnum do
     end
 
     it "should match Api.Status" do
-      expect(case status
+      expect(case @status
       when Api.Status
         true
       when Api.User(Fixnum)
@@ -84,7 +92,7 @@ RSpec.describe EinsteinEnum do
     end
 
     it "should match Api.User(Fixnum)" do
-      expect(case user_id
+      expect(case @user_id
       when Api.Status
         false
       when Api.User(String)
@@ -97,7 +105,7 @@ RSpec.describe EinsteinEnum do
     end
 
     it "should match Api.User(String)" do
-      expect(case user_name
+      expect(case @user_name
       when Api.Status
         false
       when Api.User(Fixnum)
@@ -111,7 +119,7 @@ RSpec.describe EinsteinEnum do
 
     it "should match Api.User(2)" do
       expected_id = 2
-      expect(case user_id
+      expect(case @user_id
       when Api.Status
         false
       when Api.User(expected_id - 1)
@@ -126,38 +134,60 @@ RSpec.describe EinsteinEnum do
 
   describe "raw values" do
     it "should be unique" do
-      expect(user_type.raw_value).not_to eq(user_type.raw_value)
-      expect(user_id.raw_value).not_to eq(user_id.raw_value)
-      expect(user_name.raw_value).not_to eq(user_name.raw_value)
-      expect(posts.raw_value).not_to eq(posts.raw_value)
+      expect(@status.raw_value).not_to eq(@user_id.raw_value)
+      expect(@status.raw_value).not_to eq(@user_name.raw_value)
+      expect(@status.raw_value).not_to eq(@posts.raw_value)
+
+      expect(@user_id.raw_value).not_to eq(@user_name.raw_value)
+      expect(@user_id.raw_value).not_to eq(@posts.raw_value)
+
+      expect(@user_name.raw_value).not_to eq(@posts.raw_value)
     end
 
     it "should be customizable" do
-      expect(posts.raw_value).to eq(:posts)
+      expect(@posts.raw_value).to eq(:posts)
     end
   end
 
-  describe("methods") do
+  describe "methods" do
+    it "should define constants" do
+      expect(Api.Status).to be_a_kind_of(Enum)
+    end
+
+    it "should define methods" do
+      expect(Api.Status()).to be_a_kind_of(Enum)
+    end
+
+    it "should define instance methods" do
+      expect(Api.Status.Status()).to be_a_kind_of(Enum)
+    end
+
     it "should create the Status url string" do
-      expect(status.url).to eq(ROOT + "/status")
+      expect(Api.Status.url).to eq(ROOT + "/status")
+      expect(@status.url).to eq(ROOT + "/status")
     end
 
     it "should create the User(Fixnum) url string" do
-      expect(user_id.url).to eq(ROOT + "/users/by_id/2")
+      expect(@user_id.url).to eq(ROOT + "/users/by_id/2")
     end
 
     it "should create the User(String) url string" do
-      expect(user_name.url).to eq(ROOT + "/users/by_name/colinta")
+      expect(@user_name.url).to eq(ROOT + "/users/by_name/colinta")
     end
 
     it "should create the Post url string" do
-      expect(posts.url).to eq(ROOT + "/posts")
+      expect(@posts.url).to eq(ROOT + "/posts")
     end
 
     it "should create the PostDetail(Fixnum) url string" do
-      expect(post_detail.url).to eq(ROOT + "/posts/2")
+      expect(@post_detail.url).to eq(ROOT + "/posts/2")
+    end
+  end
+
+  describe "edge cases" do
+    it "should have `EdgeCases.lower_case`" do
+      expect(EdgeCases.lower_case).to be_a_kind_of(Enum)
     end
   end
 
 end
-

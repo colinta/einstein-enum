@@ -35,12 +35,16 @@ module EinsteinEnum
         all_values << new_value
 
         if !self.respond_to?(name)
+          # defines `YourEnum.YourValue(*values)`
           define_singleton_method(name) do |*type_values|
             create(name, *type_values)
           end
-          if types.count == 0
+          # defines `YourEnum.YourValue` if it looks like a constant
+          if types.count == 0 && name[0] =~ /^[A-Z]/
             self.const_set(name, new_value)
           end
+          # inside Enum definitions, it is nice to support `Type(*values)`
+          # without requiring the class prefix.
           define_method(name) do |*type_values|
             self.class.create(name, *type_values)
           end
